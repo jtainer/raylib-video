@@ -63,13 +63,33 @@ VideoStream* OpenVideoStream(const char* filename) {
 	// Create the scaler context
 	stream->frame = av_frame_alloc();
 	stream->scaledFrame = av_frame_alloc();
-	int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGBA, stream->codecContext->width, stream->codecContext->height, 1);
+	int numBytes = av_image_get_buffer_size(
+			AV_PIX_FMT_RGBA,
+			stream->codecContext->width,
+			stream->codecContext->height,
+			1);
 	stream->bufferRGB = av_malloc(numBytes * sizeof(uint8_t));
-	av_image_fill_arrays(stream->scaledFrame->data, stream->scaledFrame->linesize, stream->bufferRGB, AV_PIX_FMT_RGBA, stream->codecContext->width, stream->codecContext->height, 1);
+	av_image_fill_arrays(
+			stream->scaledFrame->data,
+			stream->scaledFrame->linesize,
+			stream->bufferRGB,
+			AV_PIX_FMT_RGBA,
+			stream->codecContext->width,
+			stream->codecContext->height,
+			1);
 
-	stream->scalerContext = sws_getContext(stream->codecParameters->width, stream->codecParameters->height, stream->codecContext->pix_fmt,
-										   stream->codecParameters->width, stream->codecParameters->height, AV_PIX_FMT_RGBA,
-										   SWS_BICUBIC, NULL, NULL, NULL);
+	stream->scalerContext = sws_getContext(
+			stream->codecParameters->width,
+			stream->codecParameters->height,
+			stream->codecContext->pix_fmt,
+			stream->codecParameters->width,
+			stream->codecParameters->height,
+			AV_PIX_FMT_RGBA,
+			SWS_BICUBIC,
+			NULL,
+			NULL,
+			NULL);
+
 	if (stream->scalerContext == NULL) {
 		printf("Failed to create scaler context.\n");
 		return NULL;
@@ -83,7 +103,12 @@ VideoStream* OpenVideoStream(const char* filename) {
 
 Texture LoadTextureFromVideoStream(VideoStream* stream) {
 	Texture texture = { 0 };
-	texture.id = rlLoadTexture(NULL, stream->width, stream->height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1);
+	texture.id = rlLoadTexture(
+			NULL,
+			stream->width,
+			stream->height,
+			PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+			1);
 	texture.width = stream->width;
 	texture.height = stream->height;
 	texture.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8;
@@ -106,7 +131,14 @@ int UpdateTextureFromVideoStream(Texture* texture, VideoStream* stream) {
 				}
 
 				// Scale the frame
-				sws_scale(stream->scalerContext, (const uint8_t* const*) stream->frame->data, stream->frame->linesize, 0, stream->codecParameters->height, stream->scaledFrame->data, stream->scaledFrame->linesize);
+				sws_scale(
+						stream->scalerContext,
+						(const uint8_t* const*) stream->frame->data,
+						stream->frame->linesize,
+						0,
+						stream->codecParameters->height,
+						stream->scaledFrame->data,
+						stream->scaledFrame->linesize);
 
 				// Copy pixel data to VRAM
 				UpdateTexture(*texture, stream->scaledFrame->data[0]);

@@ -63,12 +63,13 @@ VideoStream* OpenVideoStream(const char* filename) {
 	// Create the scaler context
 	stream->frame = av_frame_alloc();
 	stream->scaledFrame = av_frame_alloc();
-	int numBytes = avpicture_get_size(AV_PIX_FMT_RGB32, stream->codecContext->width, stream->codecContext->height);
-	stream->bufferRGB = av_malloc(numBytes);
-	avpicture_fill((AVPicture*) stream->scaledFrame, stream->bufferRGB, AV_PIX_FMT_RGBA, stream->codecContext->width, stream->codecContext->height);
+	int numBytes = av_image_get_buffer_size(AV_PIX_FMT_RGBA, stream->codecContext->width, stream->codecContext->height, 1);
+	stream->bufferRGB = av_malloc(numBytes * sizeof(uint8_t));
+	av_image_fill_arrays(stream->scaledFrame->data, stream->scaledFrame->linesize, stream->bufferRGB, AV_PIX_FMT_RGBA, stream->codecContext->width, stream->codecContext->height, 1);
+
 	stream->scalerContext = sws_getContext(stream->codecParameters->width, stream->codecParameters->height, stream->codecContext->pix_fmt,
-			stream->codecParameters->width, stream->codecParameters->height, AV_PIX_FMT_RGBA,
-			SWS_BICUBIC, NULL, NULL, NULL);
+										   stream->codecParameters->width, stream->codecParameters->height, AV_PIX_FMT_RGBA,
+										   SWS_BICUBIC, NULL, NULL, NULL);
 	if (stream->scalerContext == NULL) {
 		printf("Failed to create scaler context.\n");
 		return NULL;
@@ -99,8 +100,7 @@ int UpdateTextureFromVideoStream(Texture* texture, VideoStream* stream) {
 				response = avcodec_receive_frame(stream->codecContext, stream->frame);
 				if (response == AVERROR(EAGAIN) || response == AVERROR_EOF) {
 					break;
-				}
-				else if (response < 0) {
+				} else if (response < 0) {
 					printf("Error decoding frame.\n");
 					return -1;
 				}
@@ -128,3 +128,4 @@ void UnloadVideoStream(VideoStream* stream) {
 	free(stream->bufferRGB);
 	free(stream);
 }
+

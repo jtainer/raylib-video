@@ -1,7 +1,7 @@
 // 
 // Functions for extracting video frames into raylib textures
 //
-// 2023, Jonathan Tainer
+// Copyright (c) 2023-2024, Jonathan Tainer. Subject to the BSD 2-Clause License.
 //
 
 #include "rvideo.h"
